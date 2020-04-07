@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'recode.dart';
 
 void main() => runApp(
   MaterialApp(
@@ -27,7 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text('Baby Name Votes'),
       ),
-      body: Center(child: Text('Hello World')),
+      body: _buildBody(context),
     );
   }
 }
@@ -38,5 +39,27 @@ Widget _buildBody(BuildContext context){
 }
 
 Widget _buildList(BuildContext context, List<Map> snapshot){
-  return ListView()
+  return ListView(
+    padding: const EdgeInsets.only(top: 20.0),
+    children: snapshot.map((data) => _buildListItem(context, data)).toList(),
+  );
+}
+
+Widget _buildListItem(BuildContext context, Map data){
+
+  final recode = Recode.fromMap(data);
+
+  return Padding(
+    key: ValueKey(recode.name),
+    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    child: Container(decoration: BoxDecoration(
+      border: Border.all(color: Colors.grey),
+      borderRadius: BorderRadius.circular(5.0)
+    ),
+    child: ListTile(title: Text(recode.name),
+    trailing: Text(recode.votes.toString()),
+    onTap: () => print(recode),),
+    ),
+
+  );
 }
