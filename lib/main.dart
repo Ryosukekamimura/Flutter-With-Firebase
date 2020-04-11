@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'recode.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 
 void main() => runApp(
-  MaterialApp(
-    home: MyHomePage(),
-    title: 'Baby Names',
-  )
+  MyApp()
 );
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MyHomePage(),
+      title: 'Baby Names',
+    );
+  }
+}
+
+
 
 final dummySnapshot = [
   {"name": "Filip", "votes": 15},
@@ -34,20 +45,25 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 Widget _buildBody(BuildContext context){
-  //TODO: get actual snapshot from Cloud Firebae
-  return _buildList(context, dummySnapshot);
+  return StreamBuilder<QuerySnapshot>(
+    stream: Firestore.instance.collection('baby').snapshots(),
+    builder: (context, snapshot){
+      if (!snapshot.hasData) return LinearProgressIndicator();
+      return _buildList(context, snapshot.data.documents);
+      },
+  );
 }
 
-Widget _buildList(BuildContext context, List<Map> snapshot){
+Widget _buildList(BuildContext context, List<DocumentSnapshot> snapshot){
   return ListView(
     padding: const EdgeInsets.only(top: 20.0),
     children: snapshot.map((data) => _buildListItem(context, data)).toList(),
   );
 }
 
-Widget _buildListItem(BuildContext context, Map data){
+Widget _buildListItem(BuildContext context, DocumentSnapshot data){
 
-  final recode = Recode.fromMap(data);
+  final recode = Recode.fromSnapshot(data);
 
   return Padding(
     key: ValueKey(recode.name),
@@ -58,7 +74,7 @@ Widget _buildListItem(BuildContext context, Map data){
     ),
     child: ListTile(title: Text(recode.name),
     trailing: Text(recode.votes.toString()),
-    onTap: () => print(recode),),
+    onTap: () => recode.reference.updateData({'votes': FieldValue.increment(1)}),),
     ),
 
   );
